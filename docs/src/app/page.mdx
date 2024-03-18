@@ -25,6 +25,167 @@ A single-file version of the package is available for download [here](https://gi
 - Override the `protected VisualElement Render()` method
 - See examples below
 
+### Simple Editor Window
+
+```cs
+using ORL.Layout;
+using ORL.Layout.Extensions;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Examples
+{
+    public class SimpleEditorWindow : EnhancedEditorWindow
+    {
+        [MenuItem("Tools/Simple Editor Window")]
+        public static void ShowWindow()
+        {
+            var window = GetWindow<SimpleEditorWindow>();
+            window.titleContent = new GUIContent("Simple Editor Window");
+            window.Show();
+        }
+
+        private readonly ReactiveProperty<int> _counter = new(0);
+
+        protected override VisualElement Render()
+        {
+            return VStack(
+                Label("Sophisticated Couter").Bold().Margin(0, 0, 4),
+                HStack(
+                    Label().BoundPropText(_counter, c => $"Counter: {c}"),
+                    Button(() => _counter.Set(_counter + 1)).Text("Increment")
+                ).AlignItems(Align.Center).JustifyContent(Justify.SpaceBetween)
+            ).Padding(4);
+        }
+    }
+}
+```
+
+Let's go over the code a little bit
+
+- We defined a `Render()` method that returns a `VisualElement` tree
+- We started with a VStack (vertical stack) which is usually a good starting point for any layout as it simply aligns any children vertically
+- We added a `Label` element which was then bound to a `ReactiveProperty`
+  - A `ReactiveProperty` is a simple container for any value, which can then be observed via `OnChange` and updated with `Set` methods
+  - In case of a `Label` if we had a `string` property - we could've simply bound it to the `Label` with `BoundPropText(_myStringProp)` method, as it is directly compatible with `string` type
+  - Since we're using `ReactiveProperty<int>` in this case - you need to supply a compute method, in this case `c => $"Counter: {c}"` which will be called every time the value changes
+- We then created a button that calls `Set` method on the `ReactiveProperty` to increment the counter, which automatically updates the `Label` text
+- The rest of the calls like `Bold()`, `Margin()`, `Padding()` are all utility layout methods to make the inspector looks nicer
+
+The final result looks something like this
+
+![Simple Editor Window](@/images/image-0.png "Simple Editor Window")
+
+### Simple Custom Inspector
+
+Let's make a simple MonoBehaviour to hold some example data first
+
+```cs
+using UnityEngine;
+
+namespace Examples
+{
+    public class Enemy : MonoBehaviour
+    {
+        public float health = 100;
+        public float damage = 10;
+        public Transform spawnPoint;
+        public Transform target;
+    }
+}
+```
+
+This should be a good starting point.
+
+By default, such a behaviour will have an inspector like this
+
+![Default Inspector](@/images/image-1.png "Default Inspector")
+
+Which can be good enough for a lot of things, but what if you wanted some quick buttons to reset the health, or to respawn the enemy?
+
+Let's write an inspector for it to enhance the base unity editing functionality
+
+```cs
+using ORL.Layout;
+using ORL.Layout.Extensions;
+using UnityEditor;
+using UnityEngine.UIElements;
+
+namespace Examples
+{
+    [CustomEditor(typeof(Enemy))]
+    public class EnemyEditor : EnhancedEditor
+    {
+        protected override VisualElement Render()
+        {
+            return VStack(
+                HStack(
+                    PropertyField(serializedObject.FindProperty("health")).Flex(1),
+                    Button(() =>
+                    {
+                        serializedObject.FindProperty("health").floatValue = 100;
+                        serializedObject.ApplyModifiedProperties();
+                    }).Text("Reset")
+                ).JustifyContent(Justify.SpaceBetween),
+                PropertyField(serializedObject.FindProperty("damage")),
+                Label("Positions").Bold().Margin(10, 0, 0, 3),
+                PropertyField(serializedObject.FindProperty("spawnPoint")),
+                PropertyField(serializedObject.FindProperty("target")),
+                Foldout().Text("Utilities").Class("unity-foldout").ViewDataKey("utilities-foldout").Margin(0, -4, 0, -14)
+                    .Children(
+                        HStack(
+                            Button(() =>
+                            {
+                                var enemy = (Enemy)target;
+                                enemy.health = 100;
+                                enemy.transform.position = enemy.spawnPoint.position;
+                            }).Text("Respawn"),
+                            Button(() =>
+                            {
+                                var enemy = (Enemy)target;
+                                enemy.health = 0;
+                            }).Text("Kill")
+                        )
+                    )
+            );
+        }
+    }
+}
+```
+
+Let's walk through the new things in this example
+
+- Since this is a custom inspector - it is common to rely on `serializedObject` to access the properties of the target object, so we use `PropetyField` for a lot of regular fields as there is no reason to reinvent the wheel
+- To adjust the `health` property field via a "Reset" button we simply referenced it through the serialized object and updated all the properties in-place.
+  - You can also use `ReactiveProperty<float>` in a case like this, and then bind it to a `serializedProperty` so it would automatically get updated when you call `Set`. Here's how that would look
+
+```cs
+private readonly ReactiveProperty<float> _health = new(100);
+
+protected override VisualElement Render()
+{
+    var healhProp = serializedObject.FindProperty("health");
+    _health.BindToProperty(healhProp).Set(healhProp.floatValue);
+    return VStack(
+        PropertyField(healhProp),
+        Button(() => _health.Set(100)).Text("Reset")
+    );
+}
+```
+
+- There is no functional difference between the two approaches, so feel free to use whichever feels the most intuitive to you
+
+> `BindToProperty` does its best to map the type you used in the `ReactiveProperty` to the type of the `serializedProperty` and will show a warning message if they are incompatible
+
+- We also leveraged `Foldout` to create a collapsible section for the utility buttons
+  - The `ViewDataKey` is used to persist the state of the foldout between the inspector reloads
+- Lastly, we interacted directly with the current target object without persisting the changes to the serialized object, which is a common pattern when you want to perform some quick actions during play mode
+
+The final inspector ends up looking like this
+
+![Simple Custom Inspector](@/images/image-2.png "Simple Custom Inspector")
+
 
 **That's it for a general overview! If you want to learn about all the settings - check out the [full docs](/docs)**
 
