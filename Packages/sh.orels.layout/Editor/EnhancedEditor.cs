@@ -15,8 +15,10 @@ namespace ORL.Layout
         public override VisualElement CreateInspectorGUI()
         {
             _r = new VisualElement();
-            _r.styleSheets.Add(Resources.Load<StyleSheet>("ORLLayoutEditorUtilityStyles"));
-            _r.styleSheets.Add(Resources.Load<StyleSheet>("ORLLayoutEditorStyles"));
+            var utilStyles = Resources.Load<StyleSheet>("ORLLayoutEditorUtilityStyles");
+            var styles = Resources.Load<StyleSheet>("ORLLayoutEditorStyles");
+            if (utilStyles != null) _r.styleSheets.Add(utilStyles);
+            if (styles != null) _r.styleSheets.Add(styles);
             serializedObject.Update();
             _r.Add(Render());
             return _r;

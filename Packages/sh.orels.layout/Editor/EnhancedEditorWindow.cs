@@ -15,8 +15,10 @@ namespace ORL.Layout
         protected void CreateGUI()
         {
             _r = rootVisualElement;
-            _r.styleSheets.Add(Resources.Load<StyleSheet>("ORLLayoutEditorUtilityStyles"));
-            _r.styleSheets.Add(Resources.Load<StyleSheet>("ORLLayoutEditorStyles"));
+            var utilStyles = Resources.Load<StyleSheet>("ORLLayoutEditorUtilityStyles");
+            var styles = Resources.Load<StyleSheet>("ORLLayoutEditorStyles");
+            if (utilStyles != null) _r.styleSheets.Add(utilStyles);
+            if (styles != null) _r.styleSheets.Add(styles);
             _r.Add(Render());
         }
 
