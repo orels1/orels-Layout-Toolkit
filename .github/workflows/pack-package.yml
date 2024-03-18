@@ -44,7 +44,7 @@ jobs:
           echo "- ${{ env.zipFile }}" >> $GITHUB_STEP_SUMMARY 
         
       - name: Make Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: "${{inputs.package-name}}@v${{ steps.version.outputs.prop }}"
@@ -54,7 +54,7 @@ jobs:
             ${{ env.zipFile }}
 
       - name: Make Pre-Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/dev')
         with:
           tag_name: "${{inputs.package-name}}@v${{ steps.version.outputs.prop }}"
