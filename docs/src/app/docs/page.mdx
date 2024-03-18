@@ -1,0 +1,471 @@
+export { DocsLayout as default } from '@/components/DocsLayout'
+
+## Get Started
+
+### Installation
+
+- Add to the VRChat Creator Companion using this link: [Add to the VCC](vcc://vpm/addRepo?url=https://orels1.github.io/orels-Layout-Toolkit/index.json)
+- Make sure the "orels-Layout-Toolkit" Repository is added and selected in the Settings screen
+- Open your World project and add the "ORL Layout Toolkit" Package
+
+### Single-file Installation
+
+A single-file version of the package is available for download [here](https://github.com/orels1/orels-Layout-Toolkit/releases).
+    - You can drop `ORLLayoutToolkit.cs` file into any Editor folder in your project and it should work as expected
+    - The only limitation of this approach is that you will not get the utility classes stylesheet included, so things like `Label().Class("pr-2")` will need to be written like `Label().Padding(0, 4, 0, 0)`
+    - If you're looking to actively edit the source code - it is recommended to use single-file installations, that will allow you to extend all the included partial classes easily
+
+### Basic Setup
+
+- Inherit your EditorWindows from `ORL.Layout.EnhancedEditorWindow` and your custom editors from `ORL.Layoot.EnhancedEditor` 
+- Override `CreateGUI` and `CreateInspectorGUI` respectively
+- Make sure to call the base method like `base.CreateGUI()` and `base.CreateInspectorGUI()`
+- See examples below
+
+#### Simple Editor Window
+
+```cs
+using ORL.Layout;
+using ORL.Layout.Extensions;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Examples
+{
+    public class SimpleEditorWindow : EnhancedEditorWindow
+    {
+        [MenuItem("Tools/Simple Editor Window")]
+        public static void ShowWindow()
+        {
+            var window = GetWindow<SimpleEditorWindow>();
+            window.titleContent = new GUIContent("Simple Editor Window");
+            window.Show();
+        }
+
+        private readonly ReactiveProperty<int> _counter = new(0);
+
+        protected override VisualElement Render()
+        {
+            return VStack(
+                Label("Sophisticated Couter").Bold().Margin(0, 0, 4),
+                HStack(
+                    Label().BoundPropText(_counter, c => $"Counter: {c}"),
+                    Button(() => _counter.Set(_counter + 1)).Text("Increment")
+                ).AlignItems(Align.Center).JustifyContent(Justify.SpaceBetween)
+            ).Padding(4);
+        }
+    }
+}
+```
+
+Let's go over the code a little bit
+
+- We defined a `Render()` method that returns a `VisualElement` tree
+- We started with a VStack (vertical stack) which is usually a good starting point for any layout as it simply aligns any children vertically
+- We added a `Label` element which was then bound to a `ReactiveProperty`
+  - A `ReactiveProperty` is a simple container for any value, which can then be observed via `OnChange` and updated with `Set` methods
+  - In case of a `Label` if we had a `string` property - we could've simply bound it to the `Label` with `BoundPropText(_myStringProp)` method, as it is directly compatible with `string` type
+  - Since we're using `ReactiveProperty<int>` in this case - you need to supply a compute method, in this case `c => $"Counter: {c}"` which will be called every time the value changes
+- We then created a button that calls `Set` method on the `ReactiveProperty` to increment the counter, which automatically updates the `Label` text
+- The rest of the calls like `Bold()`, `Margin()`, `Padding()` are all utility layout methods to make the inspector looks nicer
+
+The final result looks something like this
+
+![Simple Editor Window](@/images/image-0.png "Simple Editor Window")
+
+#### Simple Custom Inspector
+
+Let's make a simple MonoBehaviour to hold some example data first
+
+```cs
+using UnityEngine;
+
+namespace Examples
+{
+    public class Enemy : MonoBehaviour
+    {
+        public float health = 100;
+        public float damage = 10;
+        public Transform spawnPoint;
+        public Transform target;
+    }
+}
+```
+
+This should be a good starting point.
+
+By default, such a behaviour will have an inspector like this
+
+![Default Inspector](@/images/image-1.png "Default Inspector")
+
+Which can be good enough for a lot of things, but what if you wanted some quick buttons to reset the health, or to respawn the enemy?
+
+Let's write an inspector for it to enhance the base unity editing functionality
+
+```cs
+using ORL.Layout;
+using ORL.Layout.Extensions;
+using UnityEditor;
+using UnityEngine.UIElements;
+
+namespace Examples
+{
+    [CustomEditor(typeof(Enemy))]
+    public class EnemyEditor : EnhancedEditor
+    {
+        protected override VisualElement Render()
+        {
+            return VStack(
+                HStack(
+                    PropertyField(serializedObject.FindProperty("health")).Flex(1),
+                    Button(() =>
+                    {
+                        serializedObject.FindProperty("health").floatValue = 100;
+                        serializedObject.ApplyModifiedProperties();
+                    }).Text("Reset")
+                ).JustifyContent(Justify.SpaceBetween),
+                PropertyField(serializedObject.FindProperty("damage")),
+                Label("Positions").Bold().Margin(10, 0, 0, 3),
+                PropertyField(serializedObject.FindProperty("spawnPoint")),
+                PropertyField(serializedObject.FindProperty("target")),
+                Foldout().Text("Utilities").Class("unity-foldout").ViewDataKey("utilities-foldout").Margin(0, -4, 0, -14)
+                    .Children(
+                        HStack(
+                            Button(() =>
+                            {
+                                var enemy = (Enemy)target;
+                                enemy.health = 100;
+                                enemy.transform.position = enemy.spawnPoint.position;
+                            }).Text("Respawn"),
+                            Button(() =>
+                            {
+                                var enemy = (Enemy)target;
+                                enemy.health = 0;
+                            }).Text("Kill")
+                        )
+                    )
+            );
+        }
+    }
+}
+```
+
+Let's walk through the new things in this example
+
+- Since this is a custom inspector - it is common to rely on `serializedObject` to access the properties of the target object, so we use `PropetyField` for a lot of regular fields as there is no reason to reinvent the wheel
+- To adjust the `health` property field via a "Reset" button we simply referenced it through the serialized object and updated all the properties in-place.
+  - You can also use `ReactiveProperty<float>` in a case like this, and then bind it to a `serializedProperty` so it would automatically get updated when you call `Set`. Here's how that would look
+
+```cs
+private readonly ReactiveProperty<float> _health = new(100);
+
+protected override VisualElement Render()
+{
+    var healhProp = serializedObject.FindProperty("health");
+    _health.BindToProperty(healhProp).Set(healhProp.floatValue);
+    return VStack(
+        PropertyField(healhProp),
+        Button(() => _health.Set(100)).Text("Reset")
+    );
+}
+```
+
+- There is no functional difference between the two approaches, so feel free to use whichever feels the most intuitive to you
+
+> `BindToProperty` does its best to map the type you used in the `ReactiveProperty` to the type of the `serializedProperty` and will show a warning message if they are incompatible
+
+- We also leveraged `Foldout` to create a collapsible section for the utility buttons
+  - The `ViewDataKey` is used to persist the state of the foldout between the inspector reloads
+- Lastly, we interacted directly with the current target object without persisting the changes to the serialized object, which is a common pattern when you want to perform some quick actions during play mode
+
+The final inspector ends up looking like this
+
+![Simple Custom Inspector](@/images/image-2.png "Simple Custom Inspector")
+
+**That's it for a general overview! If you want to learn about all the methods and elements available - keep reading!**
+
+If you ever encounter any issues - [hop by the Discord](https://discord.gg/orels1) and ask for help!
+
+## Elements
+
+### HStack
+
+> Aligns child elements horizontally
+
+#### Usage
+
+```cs
+HStack(
+    Label("Health:").Bold(),
+    Label("100")
+)
+```
+
+![HStack](@/images/image-3.png "HStack")
+
+- You can use `.AlignItems()` and `.JustifyContent()` to control the alignment and spacing of the children
+
+### VStack
+
+> Aligns child elements vertically
+
+#### Usage
+
+```cs
+VStack(
+    Label("Created By").Bold().Padding(0, 0, 4, 0),
+    Label("You")
+).AlignItems(Align.Center)
+```
+
+![VStack](@/images/image-4.png "VStack")
+
+- You can use `.AlignItems()` and `.JustifyContent()` to control the alignment and spacing of the children
+
+### ForEach
+
+> Iterates overa a collection of elements and renders them using the provided template function
+
+#### Usage
+
+```cs
+var items = new List<string> { "English", "Japanese", "German", "Chinese", "French", "Korean" };
+return VStack(
+    ForEach(items, (item, index) => HStack(
+        Label($"[{index}] {item}")
+    ))
+);
+```
+
+![HStack](@/images/image-5.png "ForEach")
+
+- You generally want to use these inside of a stack layout to avoid any unexpected behavior
+- To make them reactive - you want to use a `ReactiveProperty` to store the collecting and then bind `ForEach` to it via `BoundToProp` method. Here's how that would look
+
+```cs
+private ReactiveProperty<List<string>> _items = new (new List<string> {
+    "English",
+    "Japanese",
+    "German",
+    "Chinese",
+    "French",
+    "Korean"
+});
+
+protected override VisualElement Render()
+{
+    return VStack(
+        ForEach(_items.Value, (item, index) => HStack(
+            Label($"[{index}] {item}"),
+            Button(() =>
+            {
+                var list = new List<string>(_items.Value);
+                list.RemoveAt(index);
+                _items.Set(list);
+            }).Text("Remove")
+        ).JustifyContent(Justify.SpaceBetween)).BoundToProp(_items),
+        HStack(
+            Button(() =>
+            {
+                var list = new List<string>(_items.Value)
+                {
+                    $"New Item {_items.Value.Count}"
+                };
+                _items.Set(list);
+            }).Text("Add")
+        )
+    );
+}
+```
+
+![Bound ForEach](@/images/image-6.png "Bound ForEach")
+
+- This will make the `ForEach` re-render automatically every time the items list is changed
+
+## Utility Methods
+
+There are a lot of utility methods for all kinds of elements, I will not list them all here for now, you should check out the source code for those in the `Extensions` folder.
+
+However, here are some extra callouts for escape hatches that you might want to use
+
+### Style
+
+```cs
+Label("Red background text").Style(el => el.backgroundColor = Color.red)
+```
+
+- This allows you to set any style property directly with a simple `Action<IStyle>` lambda
+
+### Class
+
+```cs
+Foldout("Unity-like foldout").Class("unity-foldout")
+```
+
+- If you have some `uss` class you want to apply to an element - you can use the `Class` method to do so
+
+
+### ViewDataKey
+
+```cs
+Foldout("My Foldout").ViewDataKey("my-foldout")
+```
+
+- This is used to persist the state of the element between the inspector reloads. You should take a look at Unity's [View Data Persistence](https://docs.unity3d.com/Manual/UIE-ViewData.html) documentation to learn which elements support this feature
+
+### ShowIf
+
+```cs
+private ReactiveProperty<bool> _extraOptionsVisible = new();
+
+protected override VisualElement Render()
+{
+    return VStack(
+        Toggle().Text("Show Extra Options").BoundPropValue(_extraOptionsVisible),
+        Label("Extra Options").ShowIf(() => _extraOptionsVisible.Value),
+    );
+}
+```
+
+- This is a simple way to conditionally show an element based on some `Func<bool>`. This has to run an update loop in the background, so the UI update can be delayed for up to 300ms
+
+### HideIf
+
+```cs
+private ReactiveProperty<bool> _extraOptionsVisible = new();
+
+protected override VisualElement Render()
+{
+    return VStack(
+        Toggle().Text("Simple Mode").BoundPropValue(_extraOptionsVisible),
+        Label("Extra Options").HideIf(() => _extraOptionsVisible.Value),
+    );
+}
+```
+
+- This is a simple way to conditionally hide an element based on some `Func<bool>`. This has to run an update loop in the background, so the UI update can be delayed for up to 300ms
+
+### BoundVisibilityState
+
+```cs
+private ReactiveProperty<bool> _extraOptionsVisible = new();
+
+protected override VisualElement Render()
+{
+    return VStack(
+        Label("Basic Options").Bold().Margin(0, 0, 4, 0),
+        VStack(
+            Label("Extra Option 1"),
+            Label("Extra Option 2"),
+            Label("Extra Option 3")
+        ),
+        Toggle().Text("Show Extra Options").BoundPropValue(_extraOptionsVisible).Margin(10, 0, 0, 0),
+        Label("Extra Options").Bold().Margin(4, 0, 4, 0).BindVisibleState(_extraOptionsVisible),
+        VStack(
+            Label("Extra Option 1"),
+            Label("Extra Option 2"),
+            Label("Extra Option 3")
+        ).BindVisibleState(_extraOptionsVisible)
+    ).Padding(4);
+}
+```
+
+- If you're using `ReactiveProperty<bool>` as the data source for visibility, you can use a `BindVisibleState` method to bind the visibility of the element to the value of the property directly. This avoids an update loop and is a more efficient way of doing that overall
+
+![Hidden State](@/images/image-7.png "Hidden State")
+
+![Visible State](@/images/image-8.png "Visible State")
+
+### BoundPropText
+
+```cs
+private ReactiveProperty<string> _libraryName = new("My Library");
+
+protected override VisualElement Render()
+{
+    return VStack(
+        Label().BoundPropText(_libraryName),
+        Button(() => _libraryName.Set("New Library")).Text("Change Library")
+    );
+}
+```
+
+- This allows you to bind a `ReactiveProperty` to a `Label` element directly, as long as the `ReactiveProperty` is of type `string`
+
+```cs
+private ReactiveProperty<int> _counter = new(0);
+
+protected override VisualElement Render()
+{
+    return VStack(
+        Label().BoundPropText(_counter, c => $"Counter: {c}"),
+        Button(() => _counter.Set(_counter + 1)).Text("Increment")
+    );
+}
+```
+
+- This allows you to bind a `ReactiveProperty` to a `Label` element using any property type. The `Func<T, string>` will be called every time the value changes and the result will be set as the text of the label
+
+
+### BoundPropValue
+
+```cs
+private ReactiveProperty<string> _newElementName = new("New Element");
+
+protected override VisualElement Render()
+{
+    return VStack(
+        TextField().BoundPropValue(_newElementName),
+        Label().BoundPropText(_newElementName)
+    );
+}
+```
+
+- This allows you to bind a `ReactiveProperty` to a `TextField` element directly, as long as the `ReactiveProperty` is of type `string`, and the value will be updated every time the user changes the text in the input field
+- BoundPropValue works on most field types provided by unity (as long as they implement `INotifyValueChanged<T>`)
+
+## Escape hatches
+
+Alognside the earlier mentioned [Style](#style), [Class](#class) utilities, there are some other escape hatches that are worth noting.
+
+### Direct Instantiation
+
+If some UI element is not covered by the toolkit, you can always instantiate it directly like this
+
+```cs
+VStack(
+    Label("My Custom Element Below"),
+    (new CustomElement(someParam)).Padding(4, 0)
+)
+```
+
+If the element implements appropriate interfaces - things like `Bind`, `BindPropValue` and `OnChange` should work out of the box
+
+### Running arbitrary code
+
+In cases where you need to call code on the visual element directly - you can use the `OnMount` and `OnUnmount` methods which accept an `Action<VisualElement>` lambda
+
+```cs
+VStack(
+    Button(() => {}).Text("Click").OnMount(el => el.RegisterCallback<MouseUpEvent>(e => Debug.Log("Mouse Up")))
+)
+```
+
+> Please note that some elements already have exclusive event handlers bound, e.g. `MouseDownEvent` on a `Button`, so you won't be able to override them, as they are already used for the button's functionality
+
+### Saving References
+
+If you need to save a reference to a visual element for later use - you can use the `Ref` method to save it to a variable
+
+```cs
+Button myButton = null;
+
+return VStack(
+    Button(() => { }).Text("Click").Ref(ref myButton),
+    Button(() => { myButton.text = "Clicked another button"; }).Text("Modify button above")
+);
+```
+
+This can be used to then later manipulate an element in something like `OnChanged` or a `Button(() => {})` click handler
+

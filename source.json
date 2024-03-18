@@ -1,0 +1,19 @@
+{
+  "name":"orels Layout Toolkit",
+  "id":"sh.orels.layout",
+  "url":"https://orels1.github.io/orels-Layout-Toolkit/index.json",
+  "author":{
+      "email":"ping@orels.sh",
+      "name":"orels1",
+      "url":"https://github.com/orels1"
+  },
+  "description":"Build faster UIToolkit Editor UIs with a Fluent interface inspired by SwiftUI",
+  "infoLink":{
+      "url":"http://github.com/orels1/orels-Layout-Toolkit",
+      "text":"View on GitHub"
+  },
+  "bannerUrl":"banner.png",
+  "githubRepos":[
+      "orels1/orels-Layout-Toolkit"
+  ]
+}

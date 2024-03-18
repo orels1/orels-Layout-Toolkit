@@ -1,0 +1,20 @@
+﻿.unity-foldout {
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(0,0,0,0.2);
+}
+
+.unity-foldout Toggle {
+    background-color: rgba(0,0,0,0.1);
+    padding: 2px 0 4px 0;
+    margin: 4px 0 0 0;
+    border-top-width: 1px;
+    border-top-color: rgba(0,0,0,0.2);
+}
+
+.unity-foldout Toggle:hover {
+    background-color: rgba(0,0,0,0.2);
+}
+
+.unity-foldout #unity-content {
+    margin: 4px;
+}

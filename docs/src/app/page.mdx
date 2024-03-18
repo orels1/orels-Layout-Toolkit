@@ -1,0 +1,54 @@
+import { SparkleIcon } from '@/components/SparkleIcon'
+import { BoltIcon } from '@/components/BoltIcon'
+import { BugIcon } from '@/components/BugIcon'
+
+export { Layout as default } from '@/components/Layout'
+
+---
+
+## Installation {{ date: '2030-01-01T00:00Z', label: 'Get Started' }}
+
+- Add to the VRChat Creator Companion using this link: [Add to the VCC](vcc://vpm/addRepo?url=https://orels1.github.io/orels-Layout-Toolkit/index.json)
+- Make sure the "orels-Layout-Toolkit" Repository is added and selected in the Settings screen
+- Open your World project and add the "ORL Layout Toolkit" Package
+
+### Single-file Installation
+
+A single-file version of the package is available for download [here](https://github.com/orels1/orels-Layout-Toolkit/releases).
+    - You can drop `ORLLayoutToolkit.cs` file into any Editor folder in your project and it should work as expected
+    - The only limitation of this approach is that you will not get the utility classes stylesheet included, so things like `Label().Class("pr-2")` will need to be written like `Label().Padding(0, 4, 0, 0)`
+    - If you're looking to actively edit the source code - it is recommended to use single-file installations, that will allow you to extend all the included partial classes easily
+
+## Setup
+
+- Inherit your EditorWindows from `ORL.Layout.EnhancedEditorWindow` and your custom editors from `ORL.Layoot.EnhancedEditor` 
+- Override the `protected VisualElement Render()` method
+- See examples below
+
+
+**That's it for a general overview! If you want to learn about all the settings - check out the [full docs](/docs)**
+
+If you ever encounter any issues - [hop by the Discord](https://discord.gg/orels1) and ask for help!
+
+---
+
+## Changelog {{ label: 'Changelog' }}
+
+Below are the changelogs for all of the releases of orels Layout Toolkit
+
+---
+
+## v1.0.0 Release {{ date: '2024-03-18T21:45:00+04:00' }}
+
+First release of orels Layout Toolkit!
+
+This includes the main package with an ability to create a wide range of custom editor windows and inspectors.
+
+### <BoltIcon /> New Features
+
+- `HStack` element, stacks child elements horizontally
+- `VStack` element, stacks child elements vertically
+- `ReactiveProperty<T>` class, a reactive value container which UI elements can be bound to. This allows for auto-updating UI elements when the value changes
+    - E.g. `Label().BindToProp(someStringProp)` will automatically update the label when `someStringProp.Set()` is called
+- `ForEach` element, renders a list of elements based on the provided `IEnumerable<T>` and a template
+    - Can be bound to a `ReactiveProperty<T>` of the same type to auto-render on change.

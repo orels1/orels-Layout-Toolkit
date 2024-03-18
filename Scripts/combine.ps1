@@ -1,0 +1,1 @@
+dotnet-combine single-file ./Packages/sh.orels.layout/Editor --output ./Build/ORLLayoutToolkit.cs --overwrite
