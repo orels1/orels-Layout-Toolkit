@@ -52,7 +52,7 @@ const MENU_ITEMS: Record<string, Array<{
     { name: 'ViewDataKey', href: '#viewdatakey' },
     { name: 'ShowIf', href: '#showif' },
     { name: 'HideIf', href: '#hideif' },
-    { name: 'BoundVisibilityState', href: '#boundvisibilitystate' },
+    { name: 'BindVisibleState', href: '#bindvisiblestate' },
     { name: 'BoundPropText', href: '#boundproptext' },
     { name: 'BoundPropValue', href: '#boundpropvalue' }
   ],
