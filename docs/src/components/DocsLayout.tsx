@@ -58,7 +58,10 @@ const MENU_ITEMS: Record<string, Array<{
   ],
   'Escape Hatches': [
     { name: 'Overview', href: '#escape-hatches' },
-  ]
+  ],
+  'API Reference': [
+    { name: 'All Methods', href: '#api-reference' },
+  ],
 }
 
 export function DocsLayout({ children }: { children: React.ReactNode }) {

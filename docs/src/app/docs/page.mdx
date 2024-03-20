@@ -469,3 +469,281 @@ return VStack(
 
 This can be used to then later manipulate an element in something like `OnChanged` or a `Button(() => {})` click handler
 
+## API Reference
+
+Below is an auto-generated API reference for all the documented methods available in the toolkit
+
+### Button.OnClick
+
+Binds a click event to the button
+
+```csharp
+Button().Text("Click me").OnClick(() => Debug.Log("Clicked!"));
+```
+
+#### Parameters
+
+- **onClick** - Click `Action`
+
+### Foldout.Text
+
+Sets the text of the foldout
+
+```csharp
+Foldout().Text("Foldout text");
+```
+
+### INotifyValueChanged&lt;SType&gt;.BoundPropValue
+
+Binds a property to the value of the field
+
+```csharp
+private ReactiveProperty<string> _text = new("Hello");
+protected override VisualElement Render()
+{
+    return VStack(
+        TextField("Type some text!").BoundPropValue(_text),
+        Label().BoundPropText(_text)
+    );
+}
+```
+
+#### Parameters
+
+- **prop** - `ReactiveProperty<T>` to bind to, must match the field type
+
+### INotifyValueChanged&lt;SType&gt;.OnChange
+
+Binds a generic callback to the value change event
+
+```csharp
+TextField("Type some text").OnChange(e => Debug.Log(e.newValue));
+```
+
+#### Parameters
+
+- **onChange** - `ChangeEvent` callback to bind
+
+### TextElement.Text
+
+Sets the text of a TextElement
+
+```csharp
+Button().Text("Click me!");
+```
+
+### TextElement.BoundPropText
+
+Binds a `ReactiveProperty` to the text of a TextElement.
+        This will automatically update the text when the property changes via its `.Set()` method
+
+```csharp
+private ReactiveProperty<string> _text = new("Waiting");
+protected override VisualElement Render()
+{
+    return VStack(
+        Label().BoundPropValue(_text),
+        Button(() => _text.Set("Thank you!")).Text("Click me!")
+    );
+}
+```
+
+#### Parameters
+
+- **prop** - `ReactiveProperty<string>` to bind to
+
+### TextElement.BoundPropText
+
+Binds a `ReactiveProperty` to the text of a TextElement via a custom compute function.
+        This will automatically update the text when the property changes via its `.Set()` method
+
+```csharp
+private ReactiveProperty<int> _counter = new(0);
+protected override VisualElement Render()
+{
+    return VStack(
+        Label().BoundPropValue(_counter, c => $"Counter: {c}"),
+        Button(() => _counter.Set(_counter + 1)).Text("Click me!")
+    );
+}
+```
+
+#### Parameters
+
+- **prop** - `ReactiveProperty<T>` to bind to
+- **compute** - Function to compute the text from the property value
+
+### TextInputBaseField&lt;string&gt;.Value
+
+Sets the value of a string input field
+
+```csharp
+TextField().Value("Hello, world!");
+```
+
+### TextInputBaseField&lt;SType&gt;.Delayed
+
+Sets any input field to be delayed or not
+
+```csharp
+TextField().Delayed(true);
+```
+
+### TextInputBaseField&lt;SType&gt;.Delayed
+
+Sets any input field to be delayed
+
+```csharp
+TextField().Delayed();
+```
+
+### VisualElement.Class
+
+Assigns a list of USS classes to a VisualElement
+
+```csharp
+Button().Class("btn", "btn-primary");
+```
+
+#### Parameters
+
+- **classNames** - List ot class names to add
+
+### VisualElement.Children
+
+Adds child elements to a VisualElement
+
+```csharp
+Foldout().Children(
+   Label().Text("Hello, world!"),
+   Button().Text("Click me!")
+);
+```
+
+### VisualElement.Ref
+
+Saves a reference to the created VisualElement in a provided variable reference for future use
+
+```csharp
+Label label = null;
+return VStack(
+  Label().Text("Hello, world!").Ref(ref label),
+  Button(() => label.text = "Wow, you clicked me!").Text("Click me!")
+)
+```
+
+### VisualElement.UserData
+
+Stores an arbitary object in the `userData` property of a VisualElement
+
+```csharp
+Label label = null;
+return VStack(
+    Label("Heyo!").UserData("Secret message!").Ref(ref label),
+    Button(() => label.text = label.userData).Text("Reveal secrets!")
+);
+```
+
+### VisualElement.Name
+
+Assigns a name to a VisualElement
+
+```csharp
+Label().Name("my-label");
+```
+
+#### Notes
+
+- This can be used to target elements via USS #selectors, e.g. #my-label
+
+### VisualElement.ViewDataKey
+
+Assigns a view data key to a VisualElement
+
+```csharp
+Foldout().ViewDataKey("my-foldout").Children(
+   Label().Text("Hello, world!")
+);
+```
+
+#### Notes
+
+- This enables view state persistence on supported elements, e.g. Foldout or Scrollview. More info on Unity docs
+
+### VisualElement.Style
+
+Enables arbitrary styles manipulation via an `Action<IStyle>` delegate
+
+```csharp
+Label("Text with background color").Style(style => style.backgroundColor = Color.red);
+```
+
+#### Parameters
+
+- **setter** - `Action<IStyle>` that manipulates the style object of the target element
+
+### VisualElement.Padding
+
+Sets the edge padding of a VisualElement
+
+```csharp
+VStack(
+   Label("Padded label").Padding(10),
+   Label("Another padded label").Padding(5, 10),
+   Label("Yet another padded label").Padding(5, 10, 15),
+   Label("The last padded label").Padding(5, 10, 15, 20)
+);
+```
+
+#### Notes
+
+- 1 value: sets all paddings to the same value
+- 2 values: sets top and bottom paddings to the first value, left and right paddings to the second value
+- 3 values: sets top padding to the first value, left and right paddings to the second value, bottom padding to the third value
+- 4 values: sets top, right, bottom and left paddings to the respective values
+
+### VisualElement.Margin
+
+Sets the edge margin of a VisualElement
+
+```csharp
+VStack(
+   Label("Offset label").Margin(10),
+   Label("Another Offset label").Margin(5, 10),
+   Label("Yet another Offset label").Margin(5, 10, 15),
+   Label("The last Offset label").Margin(5, 10, 15, 20)
+);
+```
+
+#### Notes
+
+- 1 value: sets all margins to the same value
+- 2 values: sets top and bottom margins to the first value, left and right margins to the second value
+- 3 values: sets top margin to the first value, left and right margins to the second value, bottom margin to the third value
+- 4 values: sets top, right, bottom and left margins to the respective values
+
+### VisualElement.Relative
+
+Sets the VisualElement's positioning to be parent-relative
+
+```csharp
+VStack(
+    Label("I'm relative!").Relative().Top(10)
+);
+```
+
+#### Notes
+
+- Useful for positioning elements inside a container
+
+### VisualElement.Absolute
+
+Sets the VisualElement's positioning to be absolute
+
+```csharp
+VStack(
+   Label("I can overlap other elements").Absolute().Top(10).Left(30)
+);
+```
+
+
