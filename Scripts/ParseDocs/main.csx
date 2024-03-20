@@ -1,4 +1,3 @@
-
 #r "nuget:Microsoft.CodeAnalysis.CSharp.Workspaces,4.9.2"
 
 using static System.Console;
@@ -12,103 +11,120 @@ class MethodVisitor : CSharpSyntaxWalker
 {
     public StringBuilder generatedMd = new StringBuilder();
 
+    private void CreateHeader(MethodDeclarationSyntax node)
+    {
+        if (node.ReturnType.ToString() != "T" && node.ReturnType.ToString() != "void")
+        {
+            generatedMd.AppendLine($"### {node.ReturnType.ToString()}.{node.Identifier}")
+                .AppendLine();
+            return;
+        }
+
+        if (node.ReturnType.ToString() == "T")
+        {
+            if (node.ConstraintClauses.Any(c => c.Kind() == Microsoft.CodeAnalysis.CSharp.SyntaxKind.TypeParameterConstraintClause))
+            {
+                var constraint = node.ConstraintClauses.Single(c => c.Kind() == Microsoft.CodeAnalysis.CSharp.SyntaxKind.TypeParameterConstraintClause).Constraints.First();
+                var typeName = ((TypeConstraintSyntax)constraint).Type.ToString();
+                typeName = Regex.Replace(typeName, @"(\w+)<(\w+)>", "$1&lt;$2&gt;");
+                generatedMd.AppendLine($"### {typeName}.{node.Identifier}")
+                    .AppendLine();
+                return;
+            }
+        }
+
+        generatedMd.AppendLine($"### {node.Identifier}")
+            .AppendLine();
+    }
+
+    private XmlDocument GetDocumentationXml(MethodDeclarationSyntax node)
+    {
+        var trivia = node.GetLeadingTrivia().Single(t => t.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia);
+        var xml = trivia.GetStructure().ToString();
+        xml = xml.Replace("/// ", string.Empty);
+        xml = Regex.Replace(xml, @"(\w+)<(\w+)>", "$1&lt;$2&gt;");
+        xml = "<xml>\r\n" + xml + "\r\n</xml>";
+        var xmlDoc = new XmlDocument();
+        xmlDoc.LoadXml(xml);
+        return xmlDoc;
+    }
+
+    private void CreateSummary(XmlDocument xmlDoc)
+    {
+        var summaryBlock = xmlDoc.SelectSingleNode("descendant::summary");
+        if (summaryBlock == null) return;
+
+        var summary = summaryBlock.InnerText.Trim();
+        generatedMd.AppendLine(summary);
+        generatedMd.AppendLine();
+    }
+
+    private void CreateCodeBlock(XmlDocument xmlDoc)
+    {
+        var codeBlock = xmlDoc.SelectSingleNode("descendant::code");
+        if (codeBlock == null) return;
+
+        var codeLines = codeBlock.InnerText.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+        var offset = codeLines[0].Length - codeLines[0].TrimStart().Length;
+        var code = string.Join("\r\n", codeLines.Where(l => l.Trim() != string.Empty).Select(l => l.Substring(offset)));
+
+        generatedMd.AppendLine("```csharp")
+            .AppendLine(code)
+            .AppendLine("```")
+            .AppendLine();
+    }
+
+    private void CreateParams(XmlDocument xmlDoc)
+    {
+        var paramDocs = xmlDoc.SelectNodes("descendant::param");
+        if (paramDocs.Count == 0) return;
+
+        var hasNonEmptyParams = paramDocs.Cast<XmlNode>().Where(p => !string.IsNullOrWhiteSpace(p.InnerText)).ToList().Any();
+        if (!hasNonEmptyParams) return;
+
+        generatedMd.AppendLine("#### Parameters")
+            .AppendLine();
+
+        foreach (XmlNode param in paramDocs)
+        {
+            if (string.IsNullOrWhiteSpace(param.InnerText)) continue;
+            generatedMd.AppendLine($"- **{param.Attributes["name"].Value}** - {param.InnerText.Trim()}");
+        }
+
+        generatedMd.AppendLine();
+    }
+
+    private void CreateNotes(XmlDocument xmlDoc)
+    {
+        var listBlock = xmlDoc.SelectSingleNode("descendant::list");
+        if (listBlock == null) return;
+
+        var listItems = listBlock.SelectNodes("descendant::item");
+        generatedMd.AppendLine("#### Notes")
+            .AppendLine();
+        foreach (XmlNode item in listItems)
+        {
+            generatedMd.AppendLine($"- {item.InnerText.Trim()}");
+        }
+        generatedMd.AppendLine();
+    }
+
     public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
     {
-        if (node.HasLeadingTrivia)
-        {
-            if (!node.GetLeadingTrivia().Any(t => t.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)) return;
+        if (!node.HasLeadingTrivia) return;
+        if (!node.GetLeadingTrivia().Any(t => t.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)) return;
 
-            var extraNotes = new StringBuilder();
+        CreateHeader(node);
 
-            if (node.ReturnType.ToString() != "T" && node.ReturnType.ToString() != "void")
-            {
-                generatedMd.AppendLine($"### {node.ReturnType.ToString()}.{node.Identifier}");
-            }
-            else if (node.ReturnType.ToString() == "T")
-            {
-                if (node.ConstraintClauses.Any(c => c.Kind() == Microsoft.CodeAnalysis.CSharp.SyntaxKind.TypeParameterConstraintClause))
-                {
-                    var constraint = node.ConstraintClauses.Single(c => c.Kind() == Microsoft.CodeAnalysis.CSharp.SyntaxKind.TypeParameterConstraintClause).Constraints.First();
-                    var typeName = ((TypeConstraintSyntax)constraint).Type.ToString();
-                    typeName = Regex.Replace(typeName, @"(\w+)<(\w+)>", "$1&lt;$2&gt;");
-                    generatedMd.AppendLine($"### {typeName}.{node.Identifier}");
-                    // extraNotes.AppendLine()
-                    //     .AppendLine($"- This method can be used on anything that inherits or implements {typeName}");
-                }
-            }
-            else
-            {
-                generatedMd.AppendLine($"### {node.Identifier}");
-            }
-            generatedMd.AppendLine();
-            var trivia = node.GetLeadingTrivia().Single(t => t.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia);
-            var xml = trivia.GetStructure().ToString();
-            xml = xml.Replace("/// ", string.Empty);
-            xml = Regex.Replace(xml, @"(\w+)<(\w+)>", "$1&lt;$2&gt;");
-            xml = "<xml>\r\n" + xml + "\r\n</xml>";
-            var xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xml);
-            var summaryBlock = xmlDoc.SelectSingleNode("descendant::summary");
-            if (summaryBlock != null)
-            {
-                var summary = summaryBlock.InnerText.Trim();
-                generatedMd.AppendLine(summary);
-                generatedMd.AppendLine();
-            }
+        var xmlDoc = GetDocumentationXml(node);
 
-            var codeBlock = xmlDoc.SelectSingleNode("descendant::code");
-            if (codeBlock != null)
-            {
-                var codeLines = codeBlock.InnerText.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
-                var offset = codeLines[0].Length - codeLines[0].TrimStart().Length;
-                var code = string.Join("\r\n", codeLines.Where(l => l.Trim() != string.Empty).Select(l => l.Substring(offset)));
+        CreateSummary(xmlDoc);
 
-                generatedMd.AppendLine("```csharp")
-                    .AppendLine(code)
-                    .AppendLine("```")
-                    .AppendLine();
-            }
+        CreateCodeBlock(xmlDoc);
 
-            var paramDocs = xmlDoc.SelectNodes("descendant::param");
-            if (paramDocs.Count > 0)
-            {
-                var hasNonEmptyParams = paramDocs.Cast<XmlNode>().Where(p => !string.IsNullOrWhiteSpace(p.InnerText)).ToList().Any();
-                if (hasNonEmptyParams)
-                {
-                    generatedMd.AppendLine("#### Parameters")
-                        .AppendLine();
-                }
-                foreach (XmlNode param in paramDocs)
-                {
-                    if (string.IsNullOrWhiteSpace(param.InnerText)) continue;
+        CreateParams(xmlDoc);
 
-                    generatedMd.AppendLine($"- **{param.Attributes["name"].Value}** - {param.InnerText.Trim()}");
-                }
-                if (hasNonEmptyParams)
-                {
-                    generatedMd.AppendLine();
-                }
-            }
-
-            var listBlock = xmlDoc.SelectSingleNode("descendant::list");
-            if (listBlock != null)
-            {
-                var listItems = listBlock.SelectNodes("descendant::item");
-                extraNotes.AppendLine();
-                foreach (XmlNode item in listItems)
-                {
-                    extraNotes.AppendLine($"- {item.InnerText.Trim()}");
-                }
-            }
-
-            if (extraNotes.Length > 0)
-            {
-                generatedMd.AppendLine("#### Notes")
-                    .AppendLine(extraNotes.ToString());
-            }
-
-        }
-        base.VisitMethodDeclaration(node);
+        CreateNotes(xmlDoc);
     }
 }
 
@@ -150,5 +166,5 @@ foreach (var file in files)
     }
 
 }
-File.WriteAllText("../../docs/src/app/docs/page.mdx", finalLines.ToString());
 
+File.WriteAllText("../../docs/src/app/docs/page.mdx", finalLines.ToString());
