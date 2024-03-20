@@ -72,4 +72,5 @@ Assets/SerializedUdonPrograms.meta
 Assets/UdonSharp
 Assets/UdonSharp.meta
 
-AudioAssets
+# dotnet-script configs
+Scripts/**/omnisharp.json
