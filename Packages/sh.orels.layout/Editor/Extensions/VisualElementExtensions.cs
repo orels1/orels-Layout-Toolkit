@@ -9,6 +9,17 @@ namespace ORL.Layout.Extensions
 {
     public static partial class VisualElementExtensions
     {
+        /// <summary>
+        /// Assigns a list of USS classes to a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Button().Class("btn", "btn-primary");
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="classNames">List ot class names to add</param>
+        /// <returns></returns>
         public static T Class<T>(this T el, params string[] classNames) where T : VisualElement
         {
             foreach (var className in classNames)
@@ -18,6 +29,20 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Adds child elements to a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Foldout().Children(
+        ///    Label().Text("Hello, world!"),
+        ///    Button().Text("Click me!")
+        /// );
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="children"></param>
+        /// <returns></returns>
         public static T Children<T>(this T el, params VisualElement[] children) where T : VisualElement
         {
             foreach (var child in children)
@@ -28,36 +53,129 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Saves a reference to the created VisualElement in a provided variable reference for future use
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label label = null;
+        /// return VStack(
+        ///   Label().Text("Hello, world!").Ref(ref label),
+        ///   Button(() => label.text = "Wow, you clicked me!").Text("Click me!")
+        /// )
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public static T Ref<T>(this T el, ref T target) where T : VisualElement
         {
             target = el;
             return el;
         }
 
+        /// <summary>
+        /// Stores an arbitary object in the `userData` property of a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label label = null;
+        /// return VStack(
+        ///     Label("Heyo!").UserData("Secret message!").Ref(ref label),
+        ///     Button(() => label.text = label.userData).Text("Reveal secrets!")
+        /// );
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="userData"></param>
+        /// <returns></returns>
         public static T UserData<T>(this T el, object userData) where T : VisualElement
         {
             el.userData = userData;
             return el;
         }
 
+        /// <summary>
+        /// Assigns a name to a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label().Name("my-label");
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>This can be used to target elements via USS #selectors, e.g. #my-label</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public static T Name<T>(this T el, string name) where T : VisualElement
         {
             el.name = name;
             return el;
         }
 
+        /// <summary>
+        /// Assigns a view data key to a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Foldout().ViewDataKey("my-foldout").Children(
+        ///    Label().Text("Hello, world!")
+        /// );
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>This enables view state persistence on supported elements, e.g. Foldout or Scrollview. More info on Unity docs</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="viewDataKey"></param>
+        /// <returns></returns>
         public static T ViewDataKey<T>(this T el, string viewDataKey) where T : VisualElement
         {
             el.viewDataKey = viewDataKey;
             return el;
         }
 
+        /// <summary>
+        /// Enables arbitrary styles manipulation via an `Action<IStyle>` delegate
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label("Text with background color").Style(style => style.backgroundColor = Color.red);
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="setter">`Action<IStyle>` that manipulates the style object of the target element</param>
+        /// <returns></returns>
         public static T Style<T>(this T el, Action<IStyle> setter) where T : VisualElement
         {
             setter(el.style);
             return el;
         }
 
+        /// <summary>
+        /// Sets the edge padding of a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///    Label("Padded label").Padding(10),
+        ///    Label("Another padded label").Padding(5, 10),
+        ///    Label("Yet another padded label").Padding(5, 10, 15),
+        ///    Label("The last padded label").Padding(5, 10, 15, 20)
+        /// );
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>1 value: sets all paddings to the same value</item>
+        /// <item>2 values: sets top and bottom paddings to the first value, left and right paddings to the second value</item>
+        /// <item>3 values: sets top padding to the first value, left and right paddings to the second value, bottom padding to the third value</item>
+        /// <item>4 values: sets top, right, bottom and left paddings to the respective values</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="padding"></param>
+        /// <returns></returns>
         public static T Padding<T>(this T el, params float[] padding) where T : VisualElement
         {
             switch (padding.Length)
@@ -91,6 +209,28 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Sets the edge margin of a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///    Label("Offset label").Margin(10),
+        ///    Label("Another Offset label").Margin(5, 10),
+        ///    Label("Yet another Offset label").Margin(5, 10, 15),
+        ///    Label("The last Offset label").Margin(5, 10, 15, 20)
+        /// );
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>1 value: sets all margins to the same value</item>
+        /// <item>2 values: sets top and bottom margins to the first value, left and right margins to the second value</item>
+        /// <item>3 values: sets top margin to the first value, left and right margins to the second value, bottom margin to the third value</item>
+        /// <item>4 values: sets top, right, bottom and left margins to the respective values</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="margin"></param>
+        /// <returns></returns>
         public static T Margin<T>(this T el, params float[] margin) where T : VisualElement
         {
             switch (margin.Length)
@@ -124,12 +264,39 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Sets the VisualElement's positioning to be parent-relative
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///     Label("I'm relative!").Relative().Top(10)
+        /// );
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>Useful for positioning elements inside a container</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <returns></returns>
         public static T Relative<T>(this T el) where T : VisualElement
         {
             el.style.position = Position.Relative;
             return el;
         }
 
+        /// <summary>
+        /// Sets the VisualElement's positioning to be absolute
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///    Label("I can overlap other elements").Absolute().Top(10).Left(30)
+        /// );
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <returns></returns>
         public static T Absolute<T>(this T el) where T : VisualElement
         {
             el.style.position = Position.Absolute;
