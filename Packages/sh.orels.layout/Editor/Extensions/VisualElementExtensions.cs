@@ -303,30 +303,96 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Adds top offset to a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///   Label("I'm 10px offset from the top").Top(10)
+        /// );
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="offset">Amount to offset by</param>
+        /// <returns></returns>
         public static T Top<T>(this T el, float offset) where T : VisualElement
         {
             el.style.top = offset;
             return el;
         }
 
+        /// <summary>
+        /// Adds left offset to a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///   Label("I'm 10px offset from the left").Left(10)
+        /// );
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="offset">Amount to offset by</param>
+        /// <returns></returns>
         public static T Left<T>(this T el, float offset) where T : VisualElement
         {
             el.style.top = offset;
             return el;
         }
 
+        /// <summary>
+        /// Adds right offset to a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///   Label("I'm 10px offset from the right").Right(10)
+        /// );
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="offset">Amount to offset by</param>
+        /// <returns></returns>
         public static T Right<T>(this T el, float offset) where T : VisualElement
         {
             el.style.right = offset;
             return el;
         }
 
+        /// <summary>
+        /// Adds bottom offset to a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///   Label("I'm 10px offset from the bottom").Bottom(10)
+        /// );
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="offset">Amount to offset by</param>
+        /// <returns></returns>
         public static T Bottom<T>(this T el, float offset) where T : VisualElement
         {
             el.style.bottom = offset;
             return el;
         }
 
+        /// <summary>
+        /// Sets the VisualElement's flex properties
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// HStack(
+        ///   TextField("I will grow").Flex(1),
+        ///   Button("I will not", () => {})
+        /// );
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="size">Flex size to use for ratio-based scaling. See Unity docs for more details</param>
+        /// <returns></returns>
         public static T Flex<T>(this T el, float size) where T : VisualElement
         {
             el.style.flexBasis = new StyleLength(new Length(0, LengthUnit.Percent));
@@ -335,6 +401,16 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Enables word-wrapping on the VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label("This text will wrap around if it's too long").Wrapped();
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <returns></returns>
         public static T Wrapped<T>(this T el) where T : VisualElement
         {
             el.style.whiteSpace = WhiteSpace.Normal;

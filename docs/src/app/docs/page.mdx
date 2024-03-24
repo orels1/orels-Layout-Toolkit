@@ -485,6 +485,18 @@ Button().Text("Click me").OnClick(() => Debug.Log("Clicked!"));
 
 - **onClick** - Click `Action`
 
+### Button.OpenPopup
+
+Opens a popup window when the button is clicked
+
+```csharp
+Button().Text("Open Popup").OpenPopup(new TestPopup());
+```
+
+#### Notes
+
+- You can use `EnhancedPopupWindow` to create popups with OTK as well
+
 ### Foldout.Text
 
 Sets the text of the foldout
@@ -744,6 +756,85 @@ Sets the VisualElement's positioning to be absolute
 VStack(
    Label("I can overlap other elements").Absolute().Top(10).Left(30)
 );
+```
+
+### VisualElement.Top
+
+Adds top offset to a VisualElement
+
+```csharp
+VStack(
+  Label("I'm 10px offset from the top").Top(10)
+);
+```
+
+#### Parameters
+
+- **offset** - Amount to offset by
+
+### VisualElement.Left
+
+Adds left offset to a VisualElement
+
+```csharp
+VStack(
+  Label("I'm 10px offset from the left").Left(10)
+);
+```
+
+#### Parameters
+
+- **offset** - Amount to offset by
+
+### VisualElement.Right
+
+Adds right offset to a VisualElement
+
+```csharp
+VStack(
+  Label("I'm 10px offset from the right").Right(10)
+);
+```
+
+#### Parameters
+
+- **offset** - Amount to offset by
+
+### VisualElement.Bottom
+
+Adds bottom offset to a VisualElement
+
+```csharp
+VStack(
+  Label("I'm 10px offset from the bottom").Bottom(10)
+);
+```
+
+#### Parameters
+
+- **offset** - Amount to offset by
+
+### VisualElement.Flex
+
+Sets the VisualElement's flex properties
+
+```csharp
+HStack(
+  TextField("I will grow").Flex(1),
+  Button("I will not", () => {})
+);
+```
+
+#### Parameters
+
+- **size** - Flex size to use for ratio-based scaling. See Unity docs for more details
+
+### VisualElement.Wrapped
+
+Enables word-wrapping on the VisualElement
+
+```csharp
+Label("This text will wrap around if it's too long").Wrapped();
 ```
 
 
