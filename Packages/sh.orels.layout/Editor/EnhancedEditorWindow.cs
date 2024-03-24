@@ -73,6 +73,14 @@ namespace ORL.Layout
             return new Button(clickEvent);
         }
 
+        protected Button Button(string label, Action clickEvent)
+        {
+            return new Button(clickEvent)
+            {
+                text = label
+            };
+        }
+
         protected Foldout Foldout()
         {
             return new Foldout();
