@@ -199,6 +199,25 @@ Below are the changelogs for all of the releases of orels Layout Toolkit
 
 ---
 
+## v1.1.0 Release {{ date: '2024-03-24T20:00:00+04:00' }}
+
+### <BoltIcon /> New Features
+
+- `EnhancedPopupWindow` base class is now available
+    - You can use it to create custom popup windows with a similar API to `EnhancedEditorWindow`
+    - To summon such popup window from another OTK-enabled window, you can use the `Button` extension method
+
+```cs
+Button().Text("Open Popup").OpenPopup(new MyPopupWindow());
+```
+
+### <SparkleIcon /> Changes and Improvements
+
+- Added more inline docs for the extension methods
+- Added a `Button(string label)` and `Button(string label, Action onClick)` shorthands to all the base classes
+
+---
+
 ## v1.0.0 Release {{ date: '2024-03-18T21:45:00+04:00' }}
 
 First release of orels Layout Toolkit!
