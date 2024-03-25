@@ -15,7 +15,7 @@ class MethodVisitor : CSharpSyntaxWalker
     {
         if (node.ReturnType.ToString() != "T" && node.ReturnType.ToString() != "void")
         {
-            generatedMd.AppendLine($"### {node.ReturnType.ToString()}.{node.Identifier}")
+            generatedMd.AppendLine($"### {Regex.Replace(node.ReturnType.ToString(), @"(\w+)<(\w+)>", "$1&lt;$2&gt;")}.{node.Identifier}")
                 .AppendLine();
             return;
         }
@@ -37,16 +37,80 @@ class MethodVisitor : CSharpSyntaxWalker
             .AppendLine();
     }
 
+    // (?<!`\w*)(\w+)<(\w+)>(?!`\w*) to match non-codeblocked ones
     private XmlDocument GetDocumentationXml(MethodDeclarationSyntax node)
     {
         var trivia = node.GetLeadingTrivia().Single(t => t.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia);
         var xml = trivia.GetStructure().ToString();
-        xml = xml.Replace("/// ", string.Empty);
-        xml = Regex.Replace(xml, @"(\w+)<(\w+)>", "$1&lt;$2&gt;");
-        xml = "<xml>\r\n" + xml + "\r\n</xml>";
-        var xmlDoc = new XmlDocument();
-        xmlDoc.LoadXml(xml);
-        return xmlDoc;
+
+        try
+        {
+            xml = "<xml>\r\n" + xml + "</xml>";
+            var cleaned = new StringBuilder();
+
+            // walk the documentation to escape generic parameters, e.g. `Func<T, ReactiveProperty<IEnumerable>>`
+            foreach (var line in xml.Split(Environment.NewLine))
+            {
+                var local = line;
+                if (local.Trim().StartsWith("///"))
+                {
+                    if (local.Trim().Length > 3)
+                    {
+                        local = local.Trim().Substring(4);
+                    }
+                    else
+                    {
+                        local = "";
+                    }
+                }
+
+                var current = 0;
+                while (current < local.Length)
+                {
+                    var c = local[current];
+                    // We do not want to escape the XML tags
+                    // we also do not want to excape inside <code> blocks
+                    if (c == '<' && current != 0 && local[current - 1] != ' ' && local[current + 1] != '/')
+                    {
+                        var rest = local.Substring(current);
+                        var genericPos = 1;
+                        var genericLevels = 1;
+                        while (genericPos < rest.Length)
+                        {
+                            if (rest[genericPos] == '<')
+                            {
+                                genericLevels++;
+                            }
+                            if (rest[genericPos] == '>')
+                            {
+                                genericLevels--;
+                            }
+                            if (genericLevels == 0)
+                            {
+                                break;
+                            }
+                            genericPos++;
+                        }
+                        local = local.Remove(current, 1).Insert(current, "&lt;");
+                        local = local.Remove(current + genericPos + 3, 1).Insert(current + genericPos + 3, "&gt;");
+                        current += 3;
+                        continue;
+                    }
+                    current++;
+                }
+
+                cleaned.AppendLine(local);
+            }
+            var xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(cleaned.ToString());
+            return xmlDoc;
+        }
+        catch (Exception)
+        {
+            WriteLine($"Error parsing the followng XML");
+            WriteLine(xml);
+            throw;
+        }
     }
 
     private void CreateSummary(XmlDocument xmlDoc)
@@ -116,7 +180,16 @@ class MethodVisitor : CSharpSyntaxWalker
 
         CreateHeader(node);
 
-        var xmlDoc = GetDocumentationXml(node);
+        XmlDocument xmlDoc = null;
+        try
+        {
+            xmlDoc = GetDocumentationXml(node);
+        }
+        catch (Exception)
+        {
+            WriteLine($"Error parsing XML for {node.Identifier}");
+            throw;
+        }
 
         CreateSummary(xmlDoc);
 
@@ -128,7 +201,9 @@ class MethodVisitor : CSharpSyntaxWalker
     }
 }
 
-var files = Directory.GetFiles(Path.Combine("..", "..", "Packages/sh.orels.layout/Editor/Extensions"), "*.cs");
+var files = Directory.GetFiles("Packages/sh.orels.layout/Editor/Extensions", "*.cs").ToList();
+var elementFiles = Directory.GetFiles("Packages/sh.orels.layout/Editor/Elements", "*.cs");
+files.AddRange(elementFiles);
 
 var visitor = new MethodVisitor();
 var finalLines = new StringBuilder();
@@ -144,7 +219,7 @@ foreach (var file in files)
 }
 
 {
-    using var fs = new FileStream("../../docs/src/app/docs/page.mdx", FileMode.Open, FileAccess.Read);
+    using var fs = new FileStream("docs/src/app/docs/page.mdx", FileMode.Open, FileAccess.Read);
     using var sr = new StreamReader(fs);
 
     var targetLine = -1;
@@ -167,4 +242,4 @@ foreach (var file in files)
 
 }
 
-File.WriteAllText("../../docs/src/app/docs/page.mdx", finalLines.ToString());
+File.WriteAllText("docs/src/app/docs/page.mdx", finalLines.ToString());

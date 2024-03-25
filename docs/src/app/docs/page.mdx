@@ -547,7 +547,7 @@ Button().Text("Click me!");
 ### TextElement.BoundPropText
 
 Binds a `ReactiveProperty` to the text of a TextElement.
-        This will automatically update the text when the property changes via its `.Set()` method
+This will automatically update the text when the property changes via its `.Set()` method
 
 ```csharp
 private ReactiveProperty<string> _text = new("Waiting");
@@ -567,7 +567,7 @@ protected override VisualElement Render()
 ### TextElement.BoundPropText
 
 Binds a `ReactiveProperty` to the text of a TextElement via a custom compute function.
-        This will automatically update the text when the property changes via its `.Set()` method
+This will automatically update the text when the property changes via its `.Set()` method
 
 ```csharp
 private ReactiveProperty<int> _counter = new(0);
@@ -1041,5 +1041,47 @@ VisualElement().OnUnmount(label => Debug.Log("Label unmounted!"));
 #### Notes
 
 - This is internally called on `DetachFromPanelEvent`
+
+### ForEach&lt;T&gt;.BoundToProp
+
+Binds the ForEach element to a reactive property of `IEnumerable<T>` type. This automatically re-renders the elements on property change
+
+```csharp
+var items = new ReactiveProperty<IEnumerable<string>>(new List<string> { "Item 1", "Item 2", "Item 3" });
+return VStack(
+   ForEach(items.Value, item => new Label(item)).BoundToProp(items),
+   Button("Add Item").OnClick(() => { items.Set(new List<string>(items.Value) { "New Item" }); })
+);
+```
+
+#### Parameters
+
+- **prop** - `ReactiveProperty<IEnumerable<T>>` to bind to
+
+#### Notes
+
+- The current implementation only re-renders when `.Set` is called on the reactive property
+
+### ForEach&lt;T&gt;.BoundToProp
+
+Binds the ForEach element to a reactive property of `IEnumerable<T>` type with a custom transform function. This automatically re-renders the elements on property change
+
+```csharp
+var items = new ReactiveProperty<IEnumerable<string>>(new List<string> { "Item 1", "Item 2", "Item 3" });
+return VStack(
+   ForEach(items.Value, item => new Label(item)).BoundToProp(items, items => items.Reverse()),
+   Button("Add Item").OnClick(() => { items.Set(new List<string>(items.Value) { "New Item" }); })
+);
+```
+
+#### Parameters
+
+- **prop** - `ReactiveProperty<IEnumerable<T>>` to bind to
+- **transform** - A `Func<IEnumerable<T>, IEnumerable<T>>` transform function that prepares the elements to be rendered by the `template` function
+
+#### Notes
+
+- The current implementation only re-renders when `.Set` is called on the reactive property
+- The `transform` function can be used to prepare elements to be rendered by the `template` function
 
 
