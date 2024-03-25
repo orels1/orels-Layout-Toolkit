@@ -837,4 +837,209 @@ Enables word-wrapping on the VisualElement
 Label("This text will wrap around if it's too long").Wrapped();
 ```
 
+### VisualElement.Bold
+
+Makes the VisualElement's text bold
+
+```csharp
+Label("I'm bold!").Bold();
+```
+
+### VisualElement.Italic
+
+Makes the VisualElement's text italicized
+
+```csharp
+Label("I'm italic!").Italic();
+```
+
+### VisualElement.BoldItalic
+
+Makes the VisualElement's text bold and italicized
+
+```csharp
+Label("I'm bold and italic!").BoldItalic();
+```
+
+### VisualElement.Color
+
+Sets the VisualElement's text color
+
+```csharp
+Label("I'm red!").Color(Color.red);
+```
+
+### VisualElement.Width
+
+Sets the width of a VisualElement
+
+```csharp
+Label("I'm 100px wide").Width(100);
+```
+
+### IBindable.BindingPath
+
+Sets the VisualElemenet's SerializedObject binding path
+
+```csharp
+VStack(
+    TextField("Object's name").BindingPath("name");
+).BindSerializedObject(new SerializedObject(myObject));
+```
+
+#### Parameters
+
+- **bindingPath** - Variable's binding path. Check Unity docs for more information on IBindable fields
+
+### VisualElement.BindSerializedObject
+
+Binds a VisualElement to a SerializedObject
+
+```csharp
+VStack(
+   TextField("Object's name").BindingPath("name");
+).BindSerializedObject(new SerializedObject(myObject));
+```
+
+#### Parameters
+
+- **serializedObject** - SerializedObject to bind to
+
+### VisualElement.AlignItems
+
+Aligns the children of a VisualElement
+
+```csharp
+VStack(
+  Label("I'm centered"),
+  Label("I'm also centered")
+).AlignItems(Align.Center);
+```
+
+#### Parameters
+
+- **align** - Align mode. Check Unity docs for more information
+
+### VisualElement.JustifyContent
+
+Justifies the content of a VisualElement
+
+```csharp
+VStack(
+    Label("I'm all the way to the left"),
+    Label("I'm all the way to the right")
+).JustifyContent(Justify.SpaceBetween);
+```
+
+#### Parameters
+
+- **justify** - Justify Content mode. Check Unity docs for more information
+
+### VisualElement.Direction
+
+Controls the direction of VisualElement's child alignment
+
+```csharp
+VisualElement(
+   Label("I'm first"),
+   Label("I'm second")
+).Direction(FlexDirection.Row);
+```
+
+#### Parameters
+
+- **direction** - Flex direction for layout
+
+### VisualElement.ShowIf
+
+Conditionally shows a VisualElement based on a provided condition function
+
+```csharp
+var showHelp = false;
+VStack(
+    Label("Help info here").ShowIf(() => showHelp),
+    Button("Toggle Help", () => showHelp = !showHelp)
+);
+```
+
+#### Parameters
+
+- **condition** - `Func<bool>` that returns the visibility state
+
+#### Notes
+
+- This spools up a timer that evaluates the condition function every 300ms. Use `ReactiveProperty` for more efficient event-based updates
+
+### VisualElement.HideIf
+
+Conditionally hides a VisualElement based on a provided condition function
+
+```csharp
+var simpleMode = false;
+VStack(
+   Label("Advanced information").HideIf(() => simpleMode),
+   Button("Simple Mode", () => simpleMode = !simpleMode)
+);
+```
+
+#### Parameters
+
+- **condition** - `Func<bool>` that returns the hidden state
+
+#### Notes
+
+- This spools up a timer that evaluates the condition function every 300ms. Use `ReactiveProperty` for more efficient event-based updates
+
+### VisualElement.BindVisibleState
+
+Binds visbility state of a VisualElement
+
+```csharp
+var isVisible = new ReactiveProperty<bool>(true);
+VStack(
+    Label("Toggle Me").BindVisibleState(isVisible),
+    Button("Toggle visibility", () => isVisible.Set(!isVisible.Value))
+);
+```
+
+#### Parameters
+
+- **prop** - `ReactiveProperty<bool>` to bind to
+
+#### Notes
+
+- Compared to `HideIf` and `ShowIf` this only updates the visibility state when the value changes
+
+### VisualElement.OnMount
+
+Calls a provided callback on mount
+
+```csharp
+VisualElement().OnMount(label => Debug.Log("Label mounted!"));
+```
+
+#### Parameters
+
+- **onMount** - An `Action<T>` function that receives the element reference on mount
+
+#### Notes
+
+- This is internally called on `AttachToPanelEvent`
+
+### VisualElement.OnUnmount
+
+Calls a provided callback on unmount
+
+```csharp
+VisualElement().OnUnmount(label => Debug.Log("Label unmounted!"));
+```
+
+#### Parameters
+
+- **onUnmount** - An `Action<T>` function that receives the element reference on unmount
+
+#### Notes
+
+- This is internally called on `DetachFromPanelEvent`
+
 

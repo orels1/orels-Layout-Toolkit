@@ -417,6 +417,16 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Makes the VisualElement's text bold
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label("I'm bold!").Bold();
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <returns></returns>
         public static T Bold<T>(this T el) where T : VisualElement
         {
             if (el.style.unityFontStyleAndWeight == FontStyle.Italic)
@@ -429,6 +439,16 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Makes the VisualElement's text italicized
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label("I'm italic!").Italic();
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <returns></returns>
         public static T Italic<T>(this T el) where T : VisualElement
         {
             if (el.style.unityFontStyleAndWeight == FontStyle.Bold)
@@ -441,36 +461,108 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Makes the VisualElement's text bold and italicized
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label("I'm bold and italic!").BoldItalic();
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <returns></returns>
         public static T BoldItalic<T>(this T el) where T : VisualElement
         {
             el.style.unityFontStyleAndWeight = FontStyle.BoldAndItalic;
             return el;
         }
 
+        /// <summary>
+        /// Sets the VisualElement's text color
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label("I'm red!").Color(Color.red);
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="color"></param>
+        /// <returns></returns>
         public static T Color<T>(this T el, Color color) where T : VisualElement
         {
             el.style.color = color;
             return el;
         }
 
+        /// <summary>
+        /// Sets the width of a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Label("I'm 100px wide").Width(100);
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="width"></param>
+        /// <returns></returns>
         public static T Width<T>(this T el, float width) where T : VisualElement
         {
             el.style.width = width;
             return el;
         }
 
+        /// <summary>
+        /// Sets the VisualElemenet's SerializedObject binding path
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///     TextField("Object's name").BindingPath("name");
+        /// ).BindSerializedObject(new SerializedObject(myObject));
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="bindingPath">Variable's binding path. Check Unity docs for more information on IBindable fields</param>
+        /// <returns></returns>
         public static T BindingPath<T>(this T el, string bindingPath) where T : IBindable
         {
             el.bindingPath = bindingPath;
             return el;
         }
 
+        /// <summary>
+        /// Binds a VisualElement to a SerializedObject
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///    TextField("Object's name").BindingPath("name");
+        /// ).BindSerializedObject(new SerializedObject(myObject));
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="serializedObject">SerializedObject to bind to</param>
+        /// <returns></returns>
         public static T BindSerializedObject<T>(this T el, SerializedObject serializedObject) where T : VisualElement
         {
             el.Bind(serializedObject);
             return el;
         }
 
+        /// <summary>
+        /// Aligns the children of a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///   Label("I'm centered"),
+        ///   Label("I'm also centered")
+        /// ).AlignItems(Align.Center);
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="align">Align mode. Check Unity docs for more information</param>
+        /// <returns></returns>
         public static T AlignItems<T>(this T el, Align align) where T : VisualElement
         {
             el.style.alignItems = align;
@@ -483,18 +575,64 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Justifies the content of a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VStack(
+        ///     Label("I'm all the way to the left"),
+        ///     Label("I'm all the way to the right")
+        /// ).JustifyContent(Justify.SpaceBetween);
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="justify">Justify Content mode. Check Unity docs for more information</param>
+        /// <returns></returns>
         public static T JustifyContent<T>(this T el, Justify justify) where T : VisualElement
         {
             el.style.justifyContent = justify;
             return el;
         }
 
+        /// <summary>
+        /// Controls the direction of VisualElement's child alignment
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VisualElement(
+        ///    Label("I'm first"),
+        ///    Label("I'm second")
+        /// ).Direction(FlexDirection.Row);
+        /// </code>
+        /// </example>
+        /// <param name="el"></param>
+        /// <param name="direction">Flex direction for layout</param>
+        /// <returns></returns>
         public static T Direction<T>(this T el, FlexDirection direction) where T : VisualElement
         {
             el.style.flexDirection = direction;
             return el;
         }
 
+        /// <summary>
+        /// Conditionally shows a VisualElement based on a provided condition function
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// var showHelp = false;
+        /// VStack(
+        ///     Label("Help info here").ShowIf(() => showHelp),
+        ///     Button("Toggle Help", () => showHelp = !showHelp)
+        /// );
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>This spools up a timer that evaluates the condition function every 300ms. Use `ReactiveProperty` for more efficient event-based updates</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="condition">`Func<bool>` that returns the visibility state</param>
+        /// <returns></returns>
         public static T ShowIf<T>(this T el, Func<bool> condition) where T : VisualElement
         {
             el.style.display = condition() ? DisplayStyle.Flex : DisplayStyle.None;
@@ -502,6 +640,24 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Conditionally hides a VisualElement based on a provided condition function
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// var simpleMode = false;
+        /// VStack(
+        ///    Label("Advanced information").HideIf(() => simpleMode),
+        ///    Button("Simple Mode", () => simpleMode = !simpleMode)
+        /// );
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>This spools up a timer that evaluates the condition function every 300ms. Use `ReactiveProperty` for more efficient event-based updates</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="condition">`Func<bool>` that returns the hidden state</param>
+        /// <returns></returns>
         public static T HideIf<T>(this T el, Func<bool> condition) where T : VisualElement
         {
             el.style.display = condition() ? DisplayStyle.None : DisplayStyle.Flex;
@@ -509,6 +665,24 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Binds visbility state of a VisualElement
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// var isVisible = new ReactiveProperty<bool>(true);
+        /// VStack(
+        ///     Label("Toggle Me").BindVisibleState(isVisible),
+        ///     Button("Toggle visibility", () => isVisible.Set(!isVisible.Value))
+        /// );
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>Compared to `HideIf` and `ShowIf` this only updates the visibility state when the value changes</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="prop">`ReactiveProperty<bool>` to bind to</param>
+        /// <returns></returns>
         public static T BindVisibleState<T>(this T el, ReactiveProperty<bool> prop) where T : VisualElement
         {
             el.style.display = prop.Value ? DisplayStyle.Flex : DisplayStyle.None;
@@ -516,12 +690,40 @@ namespace ORL.Layout.Extensions
             return el;
         }
 
+        /// <summary>
+        /// Calls a provided callback on mount
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VisualElement().OnMount(label => Debug.Log("Label mounted!"));
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>This is internally called on `AttachToPanelEvent`</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="onMount">An `Action<T>` function that receives the element reference on mount</param>
+        /// <returns></returns>
         public static T OnMount<T>(this T el, Action<T> onMount) where T : VisualElement
         {
             el.RegisterCallback<AttachToPanelEvent>(e => onMount(el));
             return el;
         }
 
+        /// <summary>
+        /// Calls a provided callback on unmount
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// VisualElement().OnUnmount(label => Debug.Log("Label unmounted!"));
+        /// </code>
+        /// </example>
+        /// <list>
+        /// <item>This is internally called on `DetachFromPanelEvent`</item>
+        /// </list>
+        /// <param name="el"></param>
+        /// <param name="onUnmount">An `Action<T>` function that receives the element reference on unmount</param>
+        /// <returns></returns>
         public static T OnUnmount<T>(this T el, Action<T> onUnmount) where T : VisualElement
         {
             el.RegisterCallback<DetachFromPanelEvent>(e => onUnmount(el));
