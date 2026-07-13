@@ -25,4 +25,4 @@ Afterwards - add ORL Layout Toolkit package to your project
 
 [Follow the Quick Start guide on the docs](https://layout.orels.sh)
 
-Having issues? [Hop by the discord](https://discord.gg/orels1)
+Having issues? [Hop by the discord](https://discord.orels.one)
